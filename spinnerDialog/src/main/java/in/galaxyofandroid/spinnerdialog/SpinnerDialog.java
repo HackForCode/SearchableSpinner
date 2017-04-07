@@ -12,10 +12,12 @@ import android.support.v4.app.FragmentManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
-import android.widget.*;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.ListView;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by Md Farhan Raja on 2/23/2017
@@ -35,28 +37,30 @@ public final class SpinnerDialog extends DialogFragment {
         dialog.show(required(manager, "fragment manager"), null);
     }
 
-    private String getTitle() { return getArguments().getString("title"); }
-    private ArrayList<String> getItems() { return getArguments().getStringArrayList("items"); }
-
     @NonNull @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        Activity context = getActivity();
-        AlertDialog.Builder adb = new AlertDialog.Builder(context);
-        View v = context.getLayoutInflater().inflate(R.layout.dialog_layout, null);
+        final String title;
+        final ArrayList<String> items;
+        {
+            Bundle args = getArguments();
+            title = required(args.getString("title"), "title");
+            items = required(args.getStringArrayList("items"), "items");
+        }
 
-        TextView close = (TextView) v.findViewById(R.id.close);
-        TextView title = (TextView) v.findViewById(R.id.title);
-        title.setText(getTitle());
+        Activity context = getActivity();
+        View v = context.getLayoutInflater().inflate(R.layout.dialog_layout, null, false);
 
         final ListView listView = (ListView) v.findViewById(R.id.list);
         final EditText searchBox = (EditText) v.findViewById(R.id.searchBox);
-        final List<String> items = getItems();
-        final ArrayAdapter<String> adapter = new ArrayAdapter<>(context, R.layout.items_view, items);
+        final ArrayAdapter<String> adapter = new ArrayAdapter<>(context, android.R.layout.simple_list_item_1, items);
         listView.setAdapter(adapter);
-        adb.setView(v);
-        final AlertDialog alertDialog = adb.create();
+        final AlertDialog alertDialog =
+                new AlertDialog.Builder(context)
+                        .setTitle(title)
+                        .setView(v)
+                        .setNegativeButton(android.R.string.cancel, null)
+                        .create();
         alertDialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimations_SmileWindow;
-//        alertDialog.setCancelable(false);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override public void onItemClick(AdapterView<?> adapterView, View view, int pos, long l) {
@@ -73,12 +77,6 @@ public final class SpinnerDialog extends DialogFragment {
             @Override public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
             @Override public void afterTextChanged(Editable editable) {
                 adapter.getFilter().filter(searchBox.getText().toString());
-            }
-        });
-
-        close.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View v) {
-                alertDialog.dismiss();
             }
         });
         return alertDialog;

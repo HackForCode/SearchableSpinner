@@ -3,21 +3,16 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:orientation="vertical"
-    android:layout_height="wrap_content"
-    android:padding="16dp">
-
-    <TextView
-        android:id="@+id/title"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Select or Search Items"
-        android:textSize="17sp"
-        android:textStyle="bold" />
+    android:layout_height="wrap_content">
 
     <EditText
         android:id="@+id/searchBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"
+        android:layout_marginLeft="24dp"
+        android:layout_marginRight="24dp"
         android:drawableLeft="@drawable/ic_search_black_36dp"
         android:drawableStart="@drawable/ic_search_black_36dp"
         android:drawablePadding="4dp"
@@ -29,13 +24,5 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1" />
-
-    <Button
-        android:id="@+id/close"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="right"
-        android:text="Close"
-        android:background="@null" />
 
 </LinearLayout>
