@@ -1,64 +1,71 @@
 package in.galaxyofandroid.searchablespinner;
 
+import android.app.Activity;
+import android.content.Intent;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Locale;
 
-import in.galaxyofandroid.spinerdialog.OnSpinerItemClick;
-import in.galaxyofandroid.spinerdialog.SpinnerDialog;
+import in.galaxyofandroid.spinnerdialog.SpinnerDialog;
 
-public class MainActivity extends AppCompatActivity
-{
-    ArrayList<String> items=new ArrayList<>();
-    SpinnerDialog spinnerDialog;
+public class MainActivity extends AppCompatActivity {
+
     @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
-        final TextView selectedItems=(TextView)findViewById(R.id.txt);
-
-
-        items.add("Mumbai");
-        items.add("Delhi");
-        items.add("Bengaluru");
-        items.add("Hyderabad");
-        items.add("Ahmedabad");
-        items.add("Chennai");
-        items.add("Kolkata");
-        items.add("Surat");
-        items.add("Pune");
-        items.add("Jaipur");
-        items.add("Lucknow");
-        items.add("Kanpur");
-
-        spinnerDialog=new SpinnerDialog(MainActivity.this,items,"Select or Search City");
-        spinnerDialog.bindOnSpinerListener(new OnSpinerItemClick()
-        {
-            @Override
-            public void onClick(String item, int position)
-            {
-                Toast.makeText(MainActivity.this, item + "  " + position+"", Toast.LENGTH_SHORT).show();
-                selectedItems.setText(item + " Position: " + position);
-            }
-        });
-
-        findViewById(R.id.show).setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View v)
-            {
-                spinnerDialog.showSpinerDialog();
-            }
-        });
+        if (savedInstanceState == null) {
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(android.R.id.content, new InitialFragment())
+                    .commit();
+        }
     }
 
+    public static final class InitialFragment extends Fragment {
 
+        private static final int RC_SELECT_CITY = 1;
 
+        private ArrayList<String> items =
+                new ArrayList<>(Arrays.asList(
+                        "Mumbai", "Delhi", "Bengaluru", "Hyderabad", "Ahmedabad", "Chennai", "Kolkata", "Surat",
+                        "Pune", "Jaipur", "Lucknow", "Kanpur"));
+
+        private TextView selectedItems;
+
+        @Nullable @Override
+        public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+            return inflater.inflate(R.layout.activity_main, container, false);
+        }
+
+        @Override
+        public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+            view.findViewById(R.id.show).setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View v) {
+                    SpinnerDialog.show(InitialFragment.this, RC_SELECT_CITY, getFragmentManager(), "Select or Search City", items);
+                }
+            });
+            selectedItems = (TextView) view.findViewById(R.id.selectedItems);
+        }
+
+        @Override
+        public void onActivityResult(int requestCode, int resultCode, Intent data) {
+            super.onActivityResult(requestCode, resultCode, data);
+            if (requestCode == RC_SELECT_CITY && resultCode == Activity.RESULT_OK) {
+                String item = data.getStringExtra("item");
+                int position = data.getIntExtra("position", -1);
+                selectedItems.setText(String.format(Locale.US, "Selected '%s' at %d", item, position));
+            }
+        }
+    }
 
 }

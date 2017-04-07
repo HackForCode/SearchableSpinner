@@ -1,4 +1,4 @@
-package in.galaxyofandroid.spinerdialog;
+package in.galaxyofandroid.spinnerdialog;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;

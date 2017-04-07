@@ -1,4 +1,4 @@
-package in.galaxyofandroid.spinerdialog;
+package in.galaxyofandroid.spinnerdialog;
 
 import org.junit.Test;
 
