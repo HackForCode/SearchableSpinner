@@ -51,7 +51,10 @@ public class MainActivity extends AppCompatActivity {
         public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
             view.findViewById(R.id.show).setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View v) {
-                    SpinnerDialog.show(InitialFragment.this, RC_SELECT_CITY, getFragmentManager(), "Select or Search City", items);
+                    SpinnerDialog
+                            .create("Select or Search City", items)
+                            .withWindowAnimations(R.style.DialogAnimations_SmileWindow)
+                            .show(InitialFragment.this, RC_SELECT_CITY, getFragmentManager());
                 }
             });
             selectedItems = (TextView) view.findViewById(R.id.selectedItems);

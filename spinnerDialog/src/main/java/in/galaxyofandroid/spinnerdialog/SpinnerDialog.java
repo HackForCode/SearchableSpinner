@@ -6,6 +6,7 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.StyleRes;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -25,7 +26,7 @@ import java.util.ArrayList;
 
 public final class SpinnerDialog extends DialogFragment {
 
-    public static void show(Fragment caller, int requestCode, FragmentManager manager, String title, ArrayList<String> items) {
+    public static SpinnerDialog create(String title, ArrayList<String> items) {
         SpinnerDialog dialog = new SpinnerDialog();
 
         Bundle args = new Bundle(2);
@@ -33,18 +34,29 @@ public final class SpinnerDialog extends DialogFragment {
         args.putStringArrayList("items", required(items, "items"));
         dialog.setArguments(args);
 
-        dialog.setTargetFragment(required(caller, "caller fragment"), requestCode);
-        dialog.show(required(manager, "fragment manager"), null);
+        return dialog;
+    }
+
+    public SpinnerDialog withWindowAnimations(@StyleRes int windowAnimations) {
+        getArguments().putInt("animations", windowAnimations);
+        return this;
+    }
+
+    public void show(Fragment caller, int requestCode, FragmentManager manager) {
+        setTargetFragment(required(caller, "caller fragment"), requestCode);
+        show(required(manager, "fragment manager"), null);
     }
 
     @NonNull @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         final String title;
         final ArrayList<String> items;
+        final int windowAnimations;
         {
             Bundle args = getArguments();
             title = required(args.getString("title"), "title");
             items = required(args.getStringArrayList("items"), "items");
+            windowAnimations = args.getInt("animations", -1);
         }
 
         Activity context = getActivity();
@@ -60,7 +72,8 @@ public final class SpinnerDialog extends DialogFragment {
                         .setView(v)
                         .setNegativeButton(android.R.string.cancel, null)
                         .create();
-        alertDialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimations_SmileWindow;
+
+        if (windowAnimations > 0) alertDialog.getWindow().getAttributes().windowAnimations = windowAnimations;
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override public void onItemClick(AdapterView<?> adapterView, View view, int pos, long l) {
