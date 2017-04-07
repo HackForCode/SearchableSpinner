@@ -13,8 +13,9 @@ import android.widget.TextView
 
 /**
  * Created by Mike on 07.04.17
+ * @param E item type
  */
-class SpinnerView : TextView {
+class SpinnerView<E : Parcelable> : TextView {
 
     constructor(context: Context?) : super(context)
     constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs)
@@ -24,7 +25,7 @@ class SpinnerView : TextView {
     // must be set up
 
     private var title: String? = null
-    private var items: ArrayList<String>? = null
+    private var itemManager: ItemManager<E>? = null
     private var fragmentManager: FragmentManager? = null
     private var caller: Fragment? = null
     private var requestCode: Int = -1
@@ -35,71 +36,72 @@ class SpinnerView : TextView {
 
     // saved state
 
-    var selectedItemPosition: Int = -1
-        set(position) {
-            val items = items ?: throw IllegalStateException("setup() was not called on this SpinnerView.")
-            val item = if (position >= 0) items[position] else null
-            this.text = item
-            onChangeListener?.onItemSelected(item, position)
-            field = position
+    var selectedItem: E? = null
+        set(item) {
+            val itemManager = itemManager ?: throw IllegalStateException("setup() was not called on this SpinnerView.")
+            this.text = itemManager.toString(item)
+            onChangeListener?.onItemSelected(item)
+            field = item
         }
 
     init {
         setOnClickListener {
             if (title == null) throw IllegalStateException("setup() was not called on this SpinnerView.")
             SpinnerDialog
-                    .create(title!!, items!!)
+                    .create(title!!, itemManager!!)
                     .withWindowAnimations(windowAnimations)
                     .show(fragmentManager, caller, requestCode)
         }
     }
 
-    fun setUp(title: String, items: ArrayList<String>, fragmentManager: FragmentManager, caller: Fragment, requestCode: Int) {
+    fun setUp(title: String, itemManager: ItemManager<E>, fragmentManager: FragmentManager, caller: Fragment, requestCode: Int) {
         this.title = title
-        this.items = items
+        this.itemManager = itemManager
         this.fragmentManager = fragmentManager
         this.caller = caller
         this.requestCode = requestCode
     }
 
-    var onChangeListener: OnItemSelectedListener? = null
+    var onChangeListener: OnItemSelectedListener<E>? = null
 
-    interface OnItemSelectedListener {
-        fun onItemSelected(item: String?, position: Int)
+    interface OnItemSelectedListener<E> {
+        fun onItemSelected(item: E?)
     }
 
     fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
         if (requestCode == requestCode && resultCode == Activity.RESULT_OK) {
-            val pos = data.getIntExtra("position", -1)
-            selectedItemPosition = pos
+            selectedItem = data.getParcelableExtra<E?>("item")
         }
     }
 
     override fun onSaveInstanceState(): Parcelable {
-        return State(super.onSaveInstanceState(), selectedItemPosition)
+        return State(super.onSaveInstanceState(), selectedItem)
     }
 
     override fun onRestoreInstanceState(state: Parcelable?) =
-            if (state is State) {
+            if (state is State<*>) {
                 super.onRestoreInstanceState(state.superState)
-                selectedItemPosition = state.selectedItemPosition
+                @Suppress("UNCHECKED_CAST")
+                selectedItem = state.selectedItem as E // *$%#&!@ erasure
             } else {
                 super.onRestoreInstanceState(state)
             }
 
-    private class State(val superState: Parcelable, val selectedItemPosition: Int) : Parcelable {
+    private class State<E : Parcelable?>(val superState: Parcelable, val selectedItem: E) : Parcelable {
         override fun writeToParcel(dest: Parcel, flags: Int) {
             dest.writeParcelable(superState, flags)
-            dest.writeInt(selectedItemPosition)
+            dest.writeParcelable(selectedItem, flags)
         }
         override fun describeContents(): Int = 0
 
         companion object {
-            @Suppress("UNUSED") @JvmField val CREATOR = object : Parcelable.Creator<State> {
-                override fun newArray(size: Int): Array<State?> =
+            @Suppress("UNUSED") @JvmField val CREATOR = object : Parcelable.Creator<State<*>> {
+                override fun newArray(size: Int): Array<State<*>?> =
                         arrayOfNulls(size)
-                override fun createFromParcel(source: Parcel): State =
-                        State(source.readParcelable(javaClass.classLoader), source.readInt())
+                override fun createFromParcel(source: Parcel): State<*> {
+                    val cl = javaClass.classLoader
+                    return State(source.readParcelable(cl), source.readParcelable<Parcelable?>(cl))
+                }
 
             }
         }

@@ -4,7 +4,6 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/SearchableSpinner.iml" filepath="$PROJECT_DIR$/.idea/SearchableSpinner.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/spinnerDialog/spinerdialog.iml" filepath="$PROJECT_DIR$/spinnerDialog/spinerdialog.iml" />
       <module fileurl="file://$PROJECT_DIR$/spinnerDialog/spinnerDialog.iml" filepath="$PROJECT_DIR$/spinnerDialog/spinnerDialog.iml" />
     </modules>
   </component>
