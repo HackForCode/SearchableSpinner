@@ -1,21 +1,20 @@
 package in.galaxyofandroid.searchablespinner;
 
-import android.app.Activity;
 import android.content.Intent;
+import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import in.galaxyofandroid.spinnerdialog.SpinnerView;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Locale;
-
-import in.galaxyofandroid.spinnerdialog.SpinnerDialog;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -41,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
                         "Pune", "Jaipur", "Lucknow", "Kanpur"));
 
         private TextView selectedItems;
+        private SpinnerView spinner;
 
         @Nullable @Override
         public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -49,12 +49,14 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-            view.findViewById(R.id.show).setOnClickListener(new View.OnClickListener() {
-                @Override public void onClick(View v) {
-                    SpinnerDialog
-                            .create("Select or Search City", items)
-                            .withWindowAnimations(R.style.DialogAnimations_SmileWindow)
-                            .show(InitialFragment.this, RC_SELECT_CITY, getFragmentManager());
+            spinner = (SpinnerView) view.findViewById(R.id.show);
+            spinner.setUp("Select or Search City", items, getFragmentManager(), InitialFragment.this, RC_SELECT_CITY);
+            spinner.setWindowAnimations(R.style.DialogAnimations_SmileWindow);
+            spinner.setOnChangeListener(new SpinnerView.OnItemSelectedListener() {
+                @Override public void onItemSelected(String item, int position) {
+                    selectedItems.setText(item == null
+                            ? null
+                            : String.format(Locale.US, "Selected '%s' at %d", item, position));
                 }
             });
             selectedItems = (TextView) view.findViewById(R.id.selectedItems);
@@ -63,11 +65,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onActivityResult(int requestCode, int resultCode, Intent data) {
             super.onActivityResult(requestCode, resultCode, data);
-            if (requestCode == RC_SELECT_CITY && resultCode == Activity.RESULT_OK) {
-                String item = data.getStringExtra("item");
-                int position = data.getIntExtra("position", -1);
-                selectedItems.setText(String.format(Locale.US, "Selected '%s' at %d", item, position));
-            }
+            spinner.onActivityResult(requestCode, resultCode, data);
         }
     }
 

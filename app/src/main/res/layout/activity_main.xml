@@ -12,12 +12,13 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="in.galaxyofandroid.searchablespinner.MainActivity">
 
-    <Button
+    <in.galaxyofandroid.spinnerdialog.SpinnerView
         android:id="@+id/show"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="Show Dialog" />
+        android:hint="Choose a city"
+        android:padding="8dp" />
 
     <TextView
         android:id="@+id/selectedItems"

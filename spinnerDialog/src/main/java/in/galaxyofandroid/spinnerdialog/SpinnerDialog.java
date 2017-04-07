@@ -42,7 +42,7 @@ public final class SpinnerDialog extends DialogFragment {
         return this;
     }
 
-    public void show(Fragment caller, int requestCode, FragmentManager manager) {
+    public void show(FragmentManager manager, Fragment caller, int requestCode) {
         setTargetFragment(required(caller, "caller fragment"), requestCode);
         show(required(manager, "fragment manager"), null);
     }
@@ -73,7 +73,9 @@ public final class SpinnerDialog extends DialogFragment {
                         .setNegativeButton(android.R.string.cancel, null)
                         .create();
 
-        if (windowAnimations > 0) alertDialog.getWindow().getAttributes().windowAnimations = windowAnimations;
+        if (windowAnimations > 0) {
+            alertDialog.getWindow().getAttributes().windowAnimations = windowAnimations;
+        }
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override public void onItemClick(AdapterView<?> adapterView, View view, int pos, long l) {
