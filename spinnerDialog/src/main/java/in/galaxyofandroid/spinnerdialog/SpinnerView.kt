@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Parcel
 import android.os.Parcelable
+import android.support.annotation.DrawableRes
+import android.support.annotation.StringRes
 import android.support.annotation.StyleRes
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager
@@ -24,8 +26,13 @@ class SpinnerView<E : Parcelable> : TextView {
 
     // must be set up
 
-    private var title: String? = null
+    @StringRes
+    private var titleRes: Int = -1
     private var itemManager: ItemManager<E>? = null
+    @StringRes
+    private var emptyTextRes: Int = -1
+    @DrawableRes
+    private var emptyIconRes: Int = -1
     private var fragmentManager: FragmentManager? = null
     private var caller: Fragment? = null
     private var requestCode: Int = -1
@@ -46,17 +53,24 @@ class SpinnerView<E : Parcelable> : TextView {
 
     init {
         setOnClickListener {
-            if (title == null) throw IllegalStateException("setup() was not called on this SpinnerView.")
+            if (titleRes <= 0) throw IllegalStateException("setup() was not called on this SpinnerView.")
             SpinnerDialog
-                    .create(title!!, itemManager!!)
+                    .create(titleRes, itemManager!!, emptyTextRes, emptyIconRes)
                     .withWindowAnimations(windowAnimations)
                     .show(fragmentManager, caller, requestCode)
         }
     }
 
-    fun setUp(title: String, itemManager: ItemManager<E>, fragmentManager: FragmentManager, caller: Fragment, requestCode: Int) {
-        this.title = title
+    fun setUp(
+            @StringRes titleRes: Int, itemManager: ItemManager<E>,
+            @StringRes emptyTextRes: Int, /*optional*/ @DrawableRes emptyIconRes: Int,
+            fragmentManager: FragmentManager, caller: Fragment, requestCode: Int) {
+        if (titleRes <= 0) throw IllegalArgumentException("invalid title resource")
+        if (emptyTextRes <= 0) throw IllegalArgumentException("invalid 'empty text' resource")
+        this.titleRes = titleRes
         this.itemManager = itemManager
+        this.emptyTextRes = emptyTextRes
+        this.emptyIconRes = emptyIconRes
         this.fragmentManager = fragmentManager
         this.caller = caller
         this.requestCode = requestCode

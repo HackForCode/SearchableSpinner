@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">SearchableSpinner</string>
+    <string name="spinner_title">Select a city</string>
+    <string name="spinner_empty_text">Nothing found</string>
 </resources>

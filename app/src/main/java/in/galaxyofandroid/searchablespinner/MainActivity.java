@@ -50,7 +50,10 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
             spinner = (SpinnerView<ParcelString>) view.findViewById(R.id.show);
-            spinner.setUp("Select or Search City", new SimpleItemManager(items), getFragmentManager(), InitialFragment.this, RC_SELECT_CITY);
+            spinner.setUp(R.string.spinner_title,
+                    new SimpleItemManager(items),
+                    R.string.spinner_empty_text, -1,
+                    getFragmentManager(), InitialFragment.this, RC_SELECT_CITY);
             spinner.setWindowAnimations(R.style.DialogAnimations_SmileWindow);
             spinner.setOnChangeListener(new SpinnerView.OnItemSelectedListener<ParcelString>() {
                 @Override public void onItemSelected(ParcelString item) {

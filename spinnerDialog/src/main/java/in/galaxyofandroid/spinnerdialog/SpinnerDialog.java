@@ -5,16 +5,16 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.StyleRes;
+import android.support.annotation.*;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.Loader;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
@@ -23,6 +23,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,12 +35,18 @@ import java.util.List;
 
 public final class SpinnerDialog<E extends Parcelable> extends DialogFragment implements LoaderManager.LoaderCallbacks<List<E>> {
 
-    public static <E extends Parcelable> SpinnerDialog<E> create(String title, ItemManager<E> itemManager) {
+    public static <E extends Parcelable> SpinnerDialog<E> create(@StringRes int titleRes, ItemManager<E> itemManager,
+                                                                 @StringRes int emptyTextRes, @DrawableRes int emptyIconRes) {
+        if (titleRes <= 0) throw new IllegalArgumentException("invalid title resource");
+        if (emptyTextRes <= 0) throw new IllegalArgumentException("invalid 'empty text' resource");
+
         SpinnerDialog<E> dialog = new SpinnerDialog<>();
 
         Bundle args = new Bundle(2);
-        args.putString("title", required(title, "title"));
+        args.putInt("titleRes", titleRes);
         args.putParcelable("item manager", required(itemManager, "item manager"));
+        args.putInt("emptyTextRes", emptyTextRes);
+        args.putInt("emptyIconRes", emptyIconRes);
         dialog.setArguments(args);
 
         return dialog;
@@ -48,6 +55,7 @@ public final class SpinnerDialog<E extends Parcelable> extends DialogFragment im
     private String filter;
     private SpinnerDialogAdapter<E> adapter;
     private View progress;
+    private TextView empty;
 
     public SpinnerDialog withWindowAnimations(@StyleRes int windowAnimations) {
         getArguments().putInt("animations", windowAnimations);
@@ -69,11 +77,16 @@ public final class SpinnerDialog<E extends Parcelable> extends DialogFragment im
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         final String title;
         final ItemManager<E> itemManager;
+        final String emptyText;
+        final Drawable emptyIcon;
         final int windowAnimations;
         {
             Bundle args = getArguments();
-            title = required(args.getString("title"), "title");
+            title = getString(args.getInt("titleRes"));
             itemManager = required(args.<ItemManager<E>>getParcelable("item manager"), "item manager");
+            emptyText = getString(args.getInt("emptyTextRes"));
+            int emptyIconRes = args.getInt("emptyIconRes");
+            emptyIcon = emptyIconRes > 0 ? ContextCompat.getDrawable(getActivity(), emptyIconRes) : null;
             windowAnimations = args.getInt("animations", -1);
         }
 
@@ -87,6 +100,9 @@ public final class SpinnerDialog<E extends Parcelable> extends DialogFragment im
         recyclerView.setAdapter(adapter);
         recyclerView.addItemDecoration(new DividerItemDecoration(activity, DividerItemDecoration.VERTICAL));
         progress = v.findViewById(R.id.progress);
+        empty = (TextView) v.findViewById(R.id.empty);
+        empty.setText(emptyText);
+        empty.setCompoundDrawablesWithIntrinsicBounds(emptyIcon, null, null, null);
         final AlertDialog alertDialog =
                 new AlertDialog.Builder(activity)
                         .setTitle(title)
@@ -143,7 +159,7 @@ public final class SpinnerDialog<E extends Parcelable> extends DialogFragment im
     public void onLoadFinished(Loader<List<E>> loader, List<E> data) {
         adapter.setData(data);
         progress.setVisibility(View.GONE);
-        // todo: empty message
+        empty.setVisibility(data.isEmpty() ? View.VISIBLE : View.GONE);
     }
 
     @Override
