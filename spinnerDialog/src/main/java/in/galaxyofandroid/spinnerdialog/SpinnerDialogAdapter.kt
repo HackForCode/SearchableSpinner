@@ -58,8 +58,7 @@ class SpinnerDialogAdapter<E : Parcelable>(
                                 isClickable = true
                             } as TextView)
 
-    override fun getItemCount(): Int =
-            items.size
+    override fun getItemCount(): Int = items.size
 
     inner class SearchItemHolder(
             val view: TextView

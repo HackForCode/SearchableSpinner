@@ -1,5 +1,6 @@
 package `in`.galaxyofandroid.spinnerdialog
 
+import android.app.Application
 import android.os.Parcelable
 import android.support.annotation.WorkerThread
 
@@ -13,12 +14,12 @@ interface ItemManager<E : Parcelable> : Parcelable {
      * Loads items with the given filter from the specified offset.
      */
     @WorkerThread
-    fun load(filter: String?, offset: Int): List<E>
+    fun load(app: Application, filter: String?, offset: Int): List<E>
 
     /**
      * Indicates total item count. -1 while unknown.
      */
-    fun getTotal(filter: String?): Int
+    fun getTotal(app: Application, filter: String?): Int
 
     /**
      * Returns string representation of the given item.

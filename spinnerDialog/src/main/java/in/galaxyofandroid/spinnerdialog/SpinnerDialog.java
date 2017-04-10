@@ -2,6 +2,7 @@ package in.galaxyofandroid.spinnerdialog;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Application;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
@@ -181,7 +182,7 @@ public final class SpinnerDialog<E extends Parcelable> extends DialogFragment im
         private volatile boolean loading = false;
 
         @Override protected void onStartLoading() {
-            int total = itemManager.getTotal(filter);
+            int total = itemManager.getTotal((Application) getContext(), filter);
             if (list.isEmpty() && total != 0 || total > list.size() && takeContentChanged())
                 forceLoad(); // total size is unknown or greater than available size
             else
@@ -189,7 +190,7 @@ public final class SpinnerDialog<E extends Parcelable> extends DialogFragment im
         }
 
         @Override public List<E> loadInBackground() {
-            List<E> loaded = itemManager.load(filter, list.size());
+            List<E> loaded = itemManager.load((Application) getContext(), filter, list.size());
             List<E> aList = new ArrayList<>(list.size() + loaded.size());
             aList.addAll(list);
             aList.addAll(loaded);
@@ -200,7 +201,7 @@ public final class SpinnerDialog<E extends Parcelable> extends DialogFragment im
         boolean onItemBound(int position) {
             int size = list.size();
             if (position > size - 3 && !loading) {
-                int total = itemManager.getTotal(filter);
+                int total = itemManager.getTotal((Application) getContext(), filter);
                 if (total < 0 || total > size) {
                     loading = true;
                     onContentChanged();

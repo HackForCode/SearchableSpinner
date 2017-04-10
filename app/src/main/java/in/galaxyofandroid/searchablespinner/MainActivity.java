@@ -1,5 +1,6 @@
 package in.galaxyofandroid.searchablespinner;
 
+import android.app.Application;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Parcel;
@@ -85,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
             this.items = items;
         }
         @NotNull @Override
-        public List<ParcelString> load(@Nullable String filter, int offset) {
+        public List<ParcelString> load(@NotNull Application app, @Nullable String filter, int offset) {
             try { Thread.sleep(1000); } catch (Exception e) { throw new AssertionError(e); }
 
             List<ParcelString> list = filtered(filter);
@@ -106,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
         public String toString(@Nullable ParcelString item) {
             return item == null ? "" : item.toString();
         }
-        @Override public int getTotal(@Nullable String filter) {
+        @Override public int getTotal(@NotNull Application app, @Nullable String filter) {
             return filtered(filter).size();
         }
 

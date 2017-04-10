@@ -82,9 +82,9 @@ class SpinnerView<E : Parcelable> : TextView {
         fun onItemSelected(item: E?)
     }
 
-    fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+    fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == requestCode && resultCode == Activity.RESULT_OK) {
-            selectedItem = data.getParcelableExtra<E?>("item")
+            selectedItem = data!!.getParcelableExtra<E?>("item")
         }
     }
 
