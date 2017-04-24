@@ -37,7 +37,9 @@ import java.util.List;
 public final class SpinnerDialog<E extends Parcelable> extends DialogFragment implements LoaderManager.LoaderCallbacks<List<E>> {
 
     public static <E extends Parcelable> SpinnerDialog<E> create(@StringRes int titleRes, ItemManager<E> itemManager,
-                                                                 @StringRes int emptyTextRes, @DrawableRes int emptyIconRes) {
+                                                                 @StringRes int emptyTextRes,
+                                                                 @DrawableRes int emptyIconRes,
+                                                                 @StringRes int cancelRes) {
         if (titleRes <= 0) throw new IllegalArgumentException("invalid title resource");
         if (emptyTextRes <= 0) throw new IllegalArgumentException("invalid 'empty text' resource");
 
@@ -48,6 +50,7 @@ public final class SpinnerDialog<E extends Parcelable> extends DialogFragment im
         args.putParcelable("item manager", required(itemManager, "item manager"));
         args.putInt("emptyTextRes", emptyTextRes);
         args.putInt("emptyIconRes", emptyIconRes);
+        args.putInt("cancelRes", cancelRes);
         dialog.setArguments(args);
 
         return dialog;
@@ -81,6 +84,7 @@ public final class SpinnerDialog<E extends Parcelable> extends DialogFragment im
         final String emptyText;
         final Drawable emptyIcon;
         final int windowAnimations;
+        final int cancelRes;
         {
             Bundle args = getArguments();
             title = getString(args.getInt("titleRes"));
@@ -89,6 +93,9 @@ public final class SpinnerDialog<E extends Parcelable> extends DialogFragment im
             int emptyIconRes = args.getInt("emptyIconRes");
             emptyIcon = emptyIconRes > 0 ? ContextCompat.getDrawable(getActivity(), emptyIconRes) : null;
             windowAnimations = args.getInt("animations", -1);
+            int _cancelRes = args.getInt("cancelRes", -1);
+            if (_cancelRes > 0) cancelRes = _cancelRes;
+            else cancelRes = android.R.string.cancel;
         }
 
         Activity activity = getActivity();
@@ -108,7 +115,7 @@ public final class SpinnerDialog<E extends Parcelable> extends DialogFragment im
                 new AlertDialog.Builder(activity)
                         .setTitle(title)
                         .setView(v)
-                        .setNegativeButton(android.R.string.cancel, null)
+                        .setNegativeButton(cancelRes, null)
                         .create();
 
         if (windowAnimations > 0) {

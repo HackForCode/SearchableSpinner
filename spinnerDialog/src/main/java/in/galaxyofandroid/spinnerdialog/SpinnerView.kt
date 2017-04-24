@@ -33,6 +33,8 @@ class SpinnerView<E : Parcelable> : TextView {
     private var emptyTextRes: Int = -1
     @DrawableRes
     private var emptyIconRes: Int = -1
+    @StringRes
+    private var cancelRes: Int = -1
     private var fragmentManager: FragmentManager? = null
     private var caller: Fragment? = null
     private var requestCode: Int = -1
@@ -45,7 +47,7 @@ class SpinnerView<E : Parcelable> : TextView {
 
     var selectedItem: E? = null
         set(item) {
-            val itemManager = itemManager ?: throw IllegalStateException("setup() was not called on this SpinnerView.")
+            val itemManager = itemManager ?: throw IllegalStateException("setUp() was not called on this SpinnerView.")
             this.text = itemManager.toString(item)
             onChangeListener?.onItemSelected(item)
             field = item
@@ -55,15 +57,16 @@ class SpinnerView<E : Parcelable> : TextView {
         setOnClickListener {
             if (titleRes <= 0) throw IllegalStateException("setup() was not called on this SpinnerView.")
             SpinnerDialog
-                    .create(titleRes, itemManager!!, emptyTextRes, emptyIconRes)
+                    .create(titleRes, itemManager!!, emptyTextRes, emptyIconRes, cancelRes)
                     .withWindowAnimations(windowAnimations)
                     .show(fragmentManager, caller, requestCode)
         }
     }
 
     fun setUp(
-            @StringRes titleRes: Int, itemManager: ItemManager<E>,
-            @StringRes emptyTextRes: Int, /*optional*/ @DrawableRes emptyIconRes: Int,
+            @StringRes titleRes: Int, itemManager: ItemManager<E>, @StringRes emptyTextRes: Int,
+            /*optional*/ @DrawableRes emptyIconRes: Int,
+            /*optional*/ @StringRes cancelRes: Int,
             fragmentManager: FragmentManager, caller: Fragment, requestCode: Int) {
         if (titleRes <= 0) throw IllegalArgumentException("invalid title resource")
         if (emptyTextRes <= 0) throw IllegalArgumentException("invalid 'empty text' resource")
@@ -71,6 +74,7 @@ class SpinnerView<E : Parcelable> : TextView {
         this.itemManager = itemManager
         this.emptyTextRes = emptyTextRes
         this.emptyIconRes = emptyIconRes
+        this.cancelRes = cancelRes
         this.fragmentManager = fragmentManager
         this.caller = caller
         this.requestCode = requestCode

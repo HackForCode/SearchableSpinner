@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
             spinner = (SpinnerView<ParcelString>) view.findViewById(R.id.show);
             spinner.setUp(R.string.spinner_title,
                     new SimpleItemManager(items),
-                    R.string.spinner_empty_text, -1,
+                    R.string.spinner_empty_text, -1, -1,
                     getFragmentManager(), InitialFragment.this, RC_SELECT_CITY);
             spinner.setWindowAnimations(R.style.DialogAnimations_SmileWindow);
             spinner.setOnChangeListener(new SpinnerView.OnItemSelectedListener<ParcelString>() {
