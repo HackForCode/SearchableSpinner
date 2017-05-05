@@ -46,8 +46,8 @@ class SpinnerDialog<E : Parcelable> : DialogFragment(), LoaderManager.LoaderCall
     }
 
     fun show(manager: FragmentManager, caller: Fragment, requestCode: Int) {
-        setTargetFragment(required(caller, "caller fragment"), requestCode)
-        show(required(manager, "fragment manager"), null)
+        setTargetFragment(caller, requestCode)
+        show(manager, null)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -65,7 +65,7 @@ class SpinnerDialog<E : Parcelable> : DialogFragment(), LoaderManager.LoaderCall
 
         val args = arguments
         title = getString(args.getInt("titleRes"))
-        itemManager = required(args.getParcelable<ItemManager<E>>("item manager"), "item manager")
+        itemManager = args.getParcelable<ItemManager<E>>("item manager")
         emptyText = getString(args.getInt("emptyTextRes"))
         val emptyIconRes = args.getInt("emptyIconRes")
         emptyIcon = if (emptyIconRes > 0) ContextCompat.getDrawable(activity, emptyIconRes) else null
@@ -124,7 +124,7 @@ class SpinnerDialog<E : Parcelable> : DialogFragment(), LoaderManager.LoaderCall
     }
 
     override fun onCreateLoader(id: Int, args: Bundle?): Loader<List<E>> {
-        return createLoader(activity, filter, arguments.getParcelable<ItemManager<E>>("item manager"))
+        return PagedLoader(activity, filter, arguments.getParcelable<ItemManager<E>>("item manager"))
     }
 
     override fun onLoadFinished(loader: Loader<List<E>>?, data: List<E>) {
@@ -190,23 +190,13 @@ class SpinnerDialog<E : Parcelable> : DialogFragment(), LoaderManager.LoaderCall
 
             val args = Bundle(2)
             args.putInt("titleRes", titleRes)
-            args.putParcelable("item manager", required(itemManager, "item manager"))
+            args.putParcelable("item manager", itemManager)
             args.putInt("emptyTextRes", emptyTextRes)
             args.putInt("emptyIconRes", emptyIconRes)
             args.putInt("cancelRes", cancelRes)
             dialog.arguments = args
 
             return dialog
-        }
-
-        private fun <T> required(t: T?, tag: String): T {
-            if (t == null) throw NullPointerException(tag + " is required")
-            return t
-        }
-
-        private fun <E : Parcelable> createLoader(
-                context: Context, filter: String?, manager: ItemManager<E>): Loader<List<E>> {
-            return PagedLoader(context, filter, manager)
         }
     }
 }
