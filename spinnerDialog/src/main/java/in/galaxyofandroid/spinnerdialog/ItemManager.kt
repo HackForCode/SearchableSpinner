@@ -12,14 +12,10 @@ import android.support.annotation.WorkerThread
 interface ItemManager<E : Parcelable> : Parcelable {
     /**
      * Loads items with the given filter from the specified offset.
+     * @return either a tuple of (data, last page) or an exception which is occurred while loading
      */
     @WorkerThread
-    fun load(app: Application, filter: String?, offset: Int): List<E>
-
-    /**
-     * Indicates total item count. -1 while unknown.
-     */
-    fun getTotal(app: Application, filter: String?): Int
+    fun load(app: Application, filter: String?, page: Int): Either<Pair<List<E>, Int>, Throwable>
 
     /**
      * Returns string representation of the given item.

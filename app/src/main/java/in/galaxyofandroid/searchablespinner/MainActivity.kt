@@ -1,5 +1,6 @@
 package `in`.galaxyofandroid.searchablespinner
 
+import `in`.galaxyofandroid.spinnerdialog.Either
 import android.app.Application
 import android.content.Intent
 import android.os.Bundle
@@ -12,7 +13,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import `in`.galaxyofandroid.spinnerdialog.ItemManager
+import `in`.galaxyofandroid.spinnerdialog.Left
 import `in`.galaxyofandroid.spinnerdialog.SpinnerView
+import java.lang.Math.ceil
 
 import java.util.*
 
@@ -75,14 +78,11 @@ class MainActivity : AppCompatActivity() {
             this.items = items
         }
 
-        override fun load(app: Application, filter: String?, offset: Int): List<ParcelString> =
-                filtered(filter).drop(offset).take(5).also { Thread.sleep(1000) }
+        override fun load(app: Application, filter: String?, page: Int): Either<Pair<List<ParcelString>, Int>, Throwable> =
+                filtered(filter).let { Left(Pair(it.drop(5 * (page-1)).take(5), ceil(it.size / 5.0).toInt())) }.also { Thread.sleep(1000) }
 
         override fun toString(item: ParcelString?): String =
                 item?.toString() ?: ""
-
-        override fun getTotal(app: Application, filter: String?): Int =
-                filtered(filter).size
 
         override fun equals(one: ParcelString, another: ParcelString): Boolean =
                 one.toString() == another.toString()

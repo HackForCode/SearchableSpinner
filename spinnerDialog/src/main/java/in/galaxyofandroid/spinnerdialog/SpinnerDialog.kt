@@ -26,18 +26,19 @@ import android.text.TextWatcher
 import android.view.View
 import android.widget.EditText
 import android.widget.TextView
+import android.widget.Toast
 import java.util.*
 
 /**
  * Created by Md Farhan Raja on 2/23/2017
  */
 
-class SpinnerDialog<E : Parcelable> : DialogFragment(), LoaderManager.LoaderCallbacks<List<E>> {
+class SpinnerDialog<E : Parcelable> : DialogFragment(), LoaderManager.LoaderCallbacks<Either<List<E>, Throwable>> {
 
-    private var filter: String? = null
     private lateinit var adapter: SpinnerDialogAdapter<E>
     private lateinit var progress: View
     private lateinit var empty: TextView
+    private lateinit var searchBox: TextView
 
     fun withWindowAnimations(@StyleRes windowAnimations: Int): SpinnerDialog<*> {
         arguments.putInt("animations", windowAnimations)
@@ -67,7 +68,7 @@ class SpinnerDialog<E : Parcelable> : DialogFragment(), LoaderManager.LoaderCall
         val v = activity.layoutInflater.inflate(R.layout.dialog_layout, null, false)
 
         val recyclerView = v.findViewById(R.id.list) as RecyclerView
-        val searchBox = v.findViewById(R.id.searchBox) as EditText
+        searchBox = v.findViewById(R.id.searchBox) as EditText
         adapter = SpinnerDialogAdapter(getActivity(), itemManager)
         recyclerView.layoutManager = LinearLayoutManager(activity)
         recyclerView.adapter = adapter
@@ -106,62 +107,73 @@ class SpinnerDialog<E : Parcelable> : DialogFragment(), LoaderManager.LoaderCall
             override fun onTextChanged(charSequence: CharSequence, i: Int, i1: Int, i2: Int) {}
             override fun afterTextChanged(editable: Editable) {
                 progress.visibility = View.VISIBLE
-                filter = searchBox.text.toString()
-                loaderManager.restartLoader(0, null, this@SpinnerDialog)
+                val newFilter = searchBox.text.toString().let { if (it.isBlank()) null else it }
+                val filter = (loaderManager.getLoader<Nothing>(0) as PagedLoader<*>).filter
+                if (filter != newFilter) {
+                    loaderManager.restartLoader(0, null, this@SpinnerDialog)
+                }
             }
         })
         return alertDialog
     }
 
-    override fun onCreateLoader(id: Int, args: Bundle?): Loader<List<E>> {
-        return PagedLoader(activity, filter, arguments.getParcelable<ItemManager<E>>("item manager"))
+    override fun onCreateLoader(id: Int, args: Bundle?): Loader<Either<List<E>, Throwable>> {
+        return PagedLoader(activity,
+                searchBox.text.let { if (it.isBlank()) null else it.toString() },
+                arguments.getParcelable<ItemManager<E>>("item manager"))
     }
 
-    override fun onLoadFinished(loader: Loader<List<E>>?, data: List<E>) {
-        adapter.setData(data)
-        progress.visibility = View.GONE
-        empty.visibility = if (data.isEmpty()) View.VISIBLE else View.GONE
-    }
+    override fun onLoadFinished(loader: Loader<Either<List<E>, Throwable>>?, data: Either<List<E>, Throwable>) =
+            data.let({
+                adapter.setData(it)
+                progress.visibility = View.GONE
+                empty.visibility = if (it.isEmpty()) View.VISIBLE else View.GONE
+            }, {
+                Toast.makeText(activity, it.message ?: it.toString(), Toast.LENGTH_LONG).show() // todo: proper error handling
+            })
 
-    override fun onLoaderReset(loader: Loader<List<E>>?) {}
+    override fun onLoaderReset(loader: Loader<Either<List<E>, Throwable>>?) {}
 
     private class PagedLoader<E : Parcelable>
     internal constructor(
             context: Context,
-            private val filter: String?,
+            internal val filter: String?,
             private val itemManager: ItemManager<E>
-    ) : AsyncTaskLoader<List<E>>(context) {
+    ) : AsyncTaskLoader<Either<List<E>, Throwable>>(context) {
 
-        private var list = emptyList<E>()
+        private var list: List<E>? = null
         @Volatile private var loading = false
+        private var currentPage = 0
+        private var lastPage = Int.MAX_VALUE
 
         override fun onStartLoading() {
-            val total = itemManager.getTotal(context as Application, filter)
-            if (list.isEmpty() && total != 0 || total > list.size && takeContentChanged())
-                forceLoad() // total size is unknown or greater than available size
-            else
-                deliverResult(list) // we've got it all
+            val list = list
+            if (!loading && (list == null || currentPage < lastPage))
+                forceLoad() // if not loading yet, and if there's no or insufficient data
+            else if (list != null)
+                deliverResult(Left(list)) // we have some data
         }
 
-        override fun loadInBackground(): List<E> {
-            val loaded = itemManager.load(context as Application, filter, list.size) // fixme: error handling!!!11
-            val aList = ArrayList<E>(list.size + loaded.size)
-            aList.addAll(list)
-            aList.addAll(loaded)
-            loading = false
-            list = aList
-            return aList // we can't just add, Loader won't deliver the same object.
-        }
+        override fun loadInBackground(): Either<List<E>, Throwable> =
+                itemManager.load(context as Application, filter, currentPage + 1).map({ (loadedList, lastPage) ->
+                    val aList = ArrayList<E>(list?.size ?: 0 + loadedList.size)
+                    list?.let { aList.addAll(it) }
+                    aList.addAll(loadedList)
+                    loading = false
+                    list = aList
+                    currentPage++
+                    this.lastPage = lastPage
+                    aList // we can't just add, Loader won't deliver the same object.
+                }, {
+                    it
+                })
 
         internal fun onItemBound(position: Int): Boolean {
-            val size = list.size
-            if (position > size - 3 && !loading) {
-                val total = itemManager.getTotal(context as Application, filter)
-                if (total < 0 || total > size) {
-                    loading = true
-                    onContentChanged()
-                    return true
-                }
+            val size = list!!.size
+            if (position > size - 3 && !loading && currentPage < lastPage) {
+                loading = true
+                forceLoad()
+                return true
             }
             return false
         }
@@ -178,7 +190,7 @@ class SpinnerDialog<E : Parcelable> : DialogFragment(), LoaderManager.LoaderCall
 
             val dialog = SpinnerDialog<E>()
 
-            val args = Bundle(2)
+            val args = Bundle(5)
             args.putInt("titleRes", titleRes)
             args.putParcelable("item manager", itemManager)
             args.putInt("emptyTextRes", emptyTextRes)

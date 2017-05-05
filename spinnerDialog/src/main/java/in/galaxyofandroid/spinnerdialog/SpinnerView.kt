@@ -100,7 +100,7 @@ class SpinnerView<E : Parcelable> : TextView {
             if (state is State<*>) {
                 super.onRestoreInstanceState(state.superState)
                 @Suppress("UNCHECKED_CAST")
-                selectedItem = state.selectedItem as E // *$%#&!@ erasure
+                selectedItem = state.selectedItem as E? // *$%#&!@ erasure
             } else {
                 super.onRestoreInstanceState(state)
             }
