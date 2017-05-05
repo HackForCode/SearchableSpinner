@@ -59,7 +59,7 @@ class SpinnerView<E : Parcelable> : TextView {
             SpinnerDialog
                     .create(titleRes, itemManager!!, emptyTextRes, emptyIconRes, cancelRes)
                     .withWindowAnimations(windowAnimations)
-                    .show(fragmentManager, caller, requestCode)
+                    .show(fragmentManager!!, caller!!, requestCode)
         }
     }
 
