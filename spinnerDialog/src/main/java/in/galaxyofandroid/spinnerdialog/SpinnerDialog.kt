@@ -6,7 +6,6 @@ import android.app.Application
 import android.app.Dialog
 import android.content.Context
 import android.content.Intent
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.Parcelable
 import android.support.annotation.DrawableRes
@@ -56,22 +55,13 @@ class SpinnerDialog<E : Parcelable> : DialogFragment(), LoaderManager.LoaderCall
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val title: String
-        val itemManager: ItemManager<E>
-        val emptyText: String
-        val emptyIcon: Drawable?
-        val windowAnimations: Int
-        val cancelRes: Int
-
         val args = arguments
-        title = getString(args.getInt("titleRes"))
-        itemManager = args.getParcelable<ItemManager<E>>("item manager")
-        emptyText = getString(args.getInt("emptyTextRes"))
-        val emptyIconRes = args.getInt("emptyIconRes")
-        emptyIcon = if (emptyIconRes > 0) ContextCompat.getDrawable(activity, emptyIconRes) else null
-        windowAnimations = args.getInt("animations", -1)
-        val _cancelRes = args.getInt("cancelRes", -1)
-        cancelRes = if (_cancelRes > 0) _cancelRes else android.R.string.cancel
+        val title = getString(args.getInt("titleRes"))
+        val itemManager = args.getParcelable<ItemManager<E>>("item manager")
+        val emptyText = getString(args.getInt("emptyTextRes"))
+        val emptyIcon = args.getInt("emptyIconRes").let { if (it > 0) ContextCompat.getDrawable(activity, it) else null }
+        val windowAnimations = args.getInt("animations", -1)
+        val cancelRes = args.getInt("cancelRes", -1).let { if (it > 0) it else android.R.string.cancel }
 
         val activity = activity
         val v = activity.layoutInflater.inflate(R.layout.dialog_layout, null, false)
