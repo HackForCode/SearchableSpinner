@@ -101,7 +101,10 @@ class SpinnerDialog<E : Parcelable> : DialogFragment(), LoaderManager.LoaderCall
                 }
             }
         }
+        return alertDialog
+    }
 
+    override fun onCreateLoader(id: Int, args: Bundle?): Loader<Either<List<E>, Throwable>> {
         searchBox.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(charSequence: CharSequence, i: Int, i1: Int, i2: Int) {}
             override fun onTextChanged(charSequence: CharSequence, i: Int, i1: Int, i2: Int) {}
@@ -114,10 +117,7 @@ class SpinnerDialog<E : Parcelable> : DialogFragment(), LoaderManager.LoaderCall
                 }
             }
         })
-        return alertDialog
-    }
 
-    override fun onCreateLoader(id: Int, args: Bundle?): Loader<Either<List<E>, Throwable>> {
         return PagedLoader(activity,
                 searchBox.text.let { if (it.isBlank()) null else it.toString() },
                 arguments.getParcelable<ItemManager<E>>("item manager"))
