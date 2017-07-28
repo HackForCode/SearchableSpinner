@@ -1,6 +1,7 @@
 package `in`.galaxyofandroid.spinnerdialog
 
 import android.app.Application
+import android.content.res.Resources
 import android.os.Parcelable
 import android.support.annotation.WorkerThread
 
@@ -26,4 +27,9 @@ interface ItemManager<E : Parcelable> : Parcelable {
      * Checks whether these items are equal or not.
      */
     fun equals(one: E, another: E): Boolean
+
+    /**
+     * Returns error message for specified throwable
+     */
+    fun getErrorMessage(resources: Resources, throwable: Throwable): CharSequence
 }

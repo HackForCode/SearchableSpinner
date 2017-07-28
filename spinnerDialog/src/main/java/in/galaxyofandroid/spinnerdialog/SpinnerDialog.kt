@@ -55,10 +55,11 @@ class SpinnerDialog<E : Parcelable> : DialogFragment(), LoaderManager.LoaderCall
         loaderManager.initLoader(0, null, this)
     }
 
+    private val itemManager: ItemManager<E> get() = arguments.getParcelable("item manager")
+
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val args = arguments
         val title = getString(args.getInt("titleRes"))
-        val itemManager = args.getParcelable<ItemManager<E>>("item manager")
         val emptyText = getString(args.getInt("emptyTextRes"))
         val emptyIcon = args.getInt("emptyIconRes").let { if (it > 0) ContextCompat.getDrawable(activity, it) else null }
         val windowAnimations = args.getInt("animations", -1)
@@ -120,12 +121,13 @@ class SpinnerDialog<E : Parcelable> : DialogFragment(), LoaderManager.LoaderCall
 
         return PagedLoader(activity,
                 searchBox.text.let { if (it.isBlank()) null else it.toString() },
-                arguments.getParcelable("item manager"))
+                itemManager)
     }
 
     override fun onLoadFinished(loader: Loader<Either<Throwable, List<E>>>?, data: Either<Throwable, List<E>>) =
             data.let({
-                Toast.makeText(activity, it.message ?: it.toString(), Toast.LENGTH_LONG).show() // todo: proper error handling
+                Toast.makeText(activity, itemManager.getErrorMessage(resources, it), Toast.LENGTH_LONG).show()
+                progress.visibility = View.GONE
             }, {
                 adapter.setData(it)
                 progress.visibility = View.GONE

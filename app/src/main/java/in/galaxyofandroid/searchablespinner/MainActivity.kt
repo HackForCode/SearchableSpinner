@@ -6,6 +6,7 @@ import `in`.galaxyofandroid.spinnerdialog.Right
 import `in`.galaxyofandroid.spinnerdialog.SpinnerView
 import android.app.Application
 import android.content.Intent
+import android.content.res.Resources
 import android.os.Bundle
 import android.os.Parcel
 import android.os.Parcelable
@@ -91,6 +92,9 @@ class MainActivity : AppCompatActivity() {
                     val lowerFilter = filter.toLowerCase()
                     items.filter { it.toString().toLowerCase().contains(lowerFilter) }
                 }
+
+        override fun getErrorMessage(resources: Resources, throwable: Throwable): CharSequence =
+                throw UnsupportedOperationException("should never happen, 'load' function won't return Left")
 
         override fun describeContents(): Int = 0
         override fun writeToParcel(dest: Parcel, flags: Int) = dest.writeTypedList(items)
