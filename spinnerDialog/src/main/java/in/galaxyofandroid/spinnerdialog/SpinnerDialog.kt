@@ -33,7 +33,7 @@ import java.util.*
  * Created by Md Farhan Raja on 2/23/2017
  */
 
-class SpinnerDialog<E : Parcelable> : DialogFragment(), LoaderManager.LoaderCallbacks<Either<List<E>, Throwable>> {
+class SpinnerDialog<E : Parcelable> : DialogFragment(), LoaderManager.LoaderCallbacks<Either<Throwable, List<E>>> {
 
     private lateinit var adapter: SpinnerDialogAdapter<E>
     private lateinit var progress: View
@@ -104,7 +104,7 @@ class SpinnerDialog<E : Parcelable> : DialogFragment(), LoaderManager.LoaderCall
         return alertDialog
     }
 
-    override fun onCreateLoader(id: Int, args: Bundle?): Loader<Either<List<E>, Throwable>> {
+    override fun onCreateLoader(id: Int, args: Bundle?): Loader<Either<Throwable, List<E>>> {
         searchBox.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(charSequence: CharSequence, i: Int, i1: Int, i2: Int) {}
             override fun onTextChanged(charSequence: CharSequence, i: Int, i1: Int, i2: Int) {}
@@ -120,26 +120,26 @@ class SpinnerDialog<E : Parcelable> : DialogFragment(), LoaderManager.LoaderCall
 
         return PagedLoader(activity,
                 searchBox.text.let { if (it.isBlank()) null else it.toString() },
-                arguments.getParcelable<ItemManager<E>>("item manager"))
+                arguments.getParcelable("item manager"))
     }
 
-    override fun onLoadFinished(loader: Loader<Either<List<E>, Throwable>>?, data: Either<List<E>, Throwable>) =
+    override fun onLoadFinished(loader: Loader<Either<Throwable, List<E>>>?, data: Either<Throwable, List<E>>) =
             data.let({
+                Toast.makeText(activity, it.message ?: it.toString(), Toast.LENGTH_LONG).show() // todo: proper error handling
+            }, {
                 adapter.setData(it)
                 progress.visibility = View.GONE
                 empty.visibility = if (it.isEmpty()) View.VISIBLE else View.GONE
-            }, {
-                Toast.makeText(activity, it.message ?: it.toString(), Toast.LENGTH_LONG).show() // todo: proper error handling
             })
 
-    override fun onLoaderReset(loader: Loader<Either<List<E>, Throwable>>?) {}
+    override fun onLoaderReset(loader: Loader<Either<Throwable, List<E>>>?) {}
 
     private class PagedLoader<E : Parcelable>
     internal constructor(
             context: Context,
             internal val filter: String?,
             private val itemManager: ItemManager<E>
-    ) : AsyncTaskLoader<Either<List<E>, Throwable>>(context) {
+    ) : AsyncTaskLoader<Either<Throwable, List<E>>>(context) {
 
         private var list: List<E>? = null
         @Volatile private var loading = false
@@ -151,10 +151,10 @@ class SpinnerDialog<E : Parcelable> : DialogFragment(), LoaderManager.LoaderCall
             if (!loading && (list == null || currentPage < lastPage))
                 forceLoad() // if not loading yet, and if there's no or insufficient data
             else if (list != null)
-                deliverResult(Left(list)) // we have some data
+                deliverResult(Right(list)) // we have some data
         }
 
-        override fun loadInBackground(): Either<List<E>, Throwable> =
+        override fun loadInBackground(): Either<Throwable, List<E>> =
                 itemManager.load(context as Application, filter, currentPage + 1).map({ (loadedList, lastPage) ->
                     val aList = ArrayList<E>(list?.size ?: 0 + loadedList.size)
                     list?.let { aList.addAll(it) }
@@ -164,8 +164,6 @@ class SpinnerDialog<E : Parcelable> : DialogFragment(), LoaderManager.LoaderCall
                     currentPage++
                     this.lastPage = lastPage
                     aList // we can't just add, Loader won't deliver the same object.
-                }, {
-                    it
                 })
 
         internal fun onItemBound(position: Int): Boolean {

@@ -15,7 +15,7 @@ interface ItemManager<E : Parcelable> : Parcelable {
      * @return either a tuple of (data, last page) or an exception which is occurred while loading
      */
     @WorkerThread
-    fun load(app: Application, filter: String?, page: Int): Either<Pair<List<E>, Int>, Throwable>
+    fun load(app: Application, filter: String?, page: Int): Either<Throwable, Pair<List<E>, Int>>
 
     /**
      * Returns string representation of the given item.

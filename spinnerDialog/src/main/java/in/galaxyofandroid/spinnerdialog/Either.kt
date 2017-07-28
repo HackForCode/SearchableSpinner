@@ -18,3 +18,9 @@ inline fun <EL, ER, RL, RR> Either<EL, ER>.map(left: (EL) -> RL, right: (ER) -> 
             is Left -> Left(left(value))
             is Right -> Right(right(value))
         }
+
+inline fun <L, ER, RR> Either<L, ER>.map(transformRight: (ER) -> RR): Either<L, RR> =
+        when (this) {
+            is Left -> this
+            is Right -> Right(transformRight(value))
+        }
